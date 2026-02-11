@@ -594,37 +594,6 @@
             </div>
         </div>
 
-        <div class="formula-card">
-            <h3 class="formula-title">ROI Formula</h3>
-            <div class="formula">
-                ROI = ((Current Value - Initial Cost) / Initial Cost) × 100
-            </div>
-            <div class="formula-explanation">
-                <p><strong>How it works:</strong></p>
-                <ul style="margin-left: 20px; margin-top: 10px; line-height: 2;">
-                    <li><strong>Initial Cost:</strong> The amount you originally invested</li>
-                    <li><strong>Current Value:</strong> The current worth of your investment</li>
-                    <li><strong>ROI:</strong> Expressed as a percentage, positive ROI means profit, negative means loss</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="formula-card">
-            <h3 class="formula-title">Annualized ROI Formula (CAGR)</h3>
-            <div class="formula">
-                Annualized ROI = ((Current Value / Initial Cost)^(1 / Years) - 1) × 100
-            </div>
-            <div class="formula-explanation">
-                <p><strong>How it works:</strong></p>
-                <ul style="margin-left: 20px; margin-top: 10px; line-height: 2;">
-                    <li><strong>CAGR:</strong> Compound Annual Growth Rate - the average yearly return</li>
-                    <li><strong>Years:</strong> The time period of your investment</li>
-                    <li><strong>Annualized ROI:</strong> Shows what you earned per year on average</li>
-                    <li><strong>Use Case:</strong> Perfect for comparing investments over different time periods</li>
-                </ul>
-            </div>
-        </div>
-
         <div class="history-section">
             <div class="section-header">
                 <h2 class="section-title">Calculation History</h2>
@@ -663,11 +632,12 @@
         let calculationHistory = JSON.parse(localStorage.getItem('roiHistory')) || [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Set default dates
-            // Set buy date to 1 year ago
-            const yearAgo = new Date();
-            yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-            document.getElementById('buyDate').valueAsDate = yearAgo;
+            // Set buy date to today
+            const today = new Date();
+            const todayString = today.getFullYear() + '-' + 
+                                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                                String(today.getDate()).padStart(2, '0');
+            document.getElementById('buyDate').value = todayString;
             
             renderHistory();
         });
@@ -751,11 +721,14 @@
             const ticker = document.getElementById('yearlyTicker').value.toUpperCase().trim();
             const initialCost = parseFloat(document.getElementById('yearlyInitialCost').value);
             const currentValue = parseFloat(document.getElementById('yearlyCurrentValue').value);
-            const buyDate = new Date(document.getElementById('buyDate').value);
+            
+            // Parse dates without timezone issues
+            const buyDateStr = document.getElementById('buyDate').value;
+            const buyDate = new Date(buyDateStr + 'T00:00:00');
             
             // If sell date is not provided, use today's date
             const sellDateInput = document.getElementById('sellDate').value;
-            const sellDate = sellDateInput ? new Date(sellDateInput) : new Date();
+            const sellDate = sellDateInput ? new Date(sellDateInput + 'T00:00:00') : new Date();
             const isOpenPosition = !sellDateInput;
             
             const investmentName = document.getElementById('yearlyInvestmentName').value || 'Unnamed Investment';
@@ -831,7 +804,7 @@
                 avgGainEl.className = 'result-value neutral';
             }
 
-            // Add to history
+            // Add to history - store date strings to avoid timezone issues
             const calculation = {
                 date: new Date().toISOString(),
                 ticker: ticker || null,
@@ -843,8 +816,8 @@
                 years: years,
                 annualizedROI: annualizedROI,
                 avgAnnualGain: avgAnnualGain,
-                buyDate: buyDate.toISOString(),
-                sellDate: sellDateInput ? sellDate.toISOString() : null,
+                buyDate: buyDateStr,
+                sellDate: sellDateInput || null,
                 isOpenPosition: isOpenPosition,
                 holdingPeriodText: holdingPeriodText,
                 type: 'yearly'
@@ -879,8 +852,30 @@
                 const date = new Date(calc.date);
                 
                 const tickerText = calc.ticker ? `<span style="color: var(--accent-blue); font-weight: 700;">${calc.ticker}</span>` : '-';
-                const buyDateText = calc.buyDate ? formatDateOnly(new Date(calc.buyDate)) : '-';
-                const sellDateText = calc.sellDate ? formatDateOnly(new Date(calc.sellDate)) : 'Open';
+                
+                // Handle both old ISO format and new date string format
+                let buyDateText = '-';
+                if (calc.buyDate) {
+                    if (calc.buyDate.includes('T')) {
+                        // Old ISO format
+                        buyDateText = formatDateOnly(new Date(calc.buyDate));
+                    } else {
+                        // New date string format (YYYY-MM-DD)
+                        buyDateText = formatDateOnly(new Date(calc.buyDate + 'T00:00:00'));
+                    }
+                }
+                
+                let sellDateText = 'Open';
+                if (calc.sellDate) {
+                    if (calc.sellDate.includes('T')) {
+                        // Old ISO format
+                        sellDateText = formatDateOnly(new Date(calc.sellDate));
+                    } else {
+                        // New date string format (YYYY-MM-DD)
+                        sellDateText = formatDateOnly(new Date(calc.sellDate + 'T00:00:00'));
+                    }
+                }
+                
                 const isOpen = calc.isOpenPosition || !calc.sellDate;
                 const statusBadge = isOpen 
                     ? '<span class="status-badge open">Open</span>' 
@@ -926,8 +921,26 @@
                 document.getElementById('yearlyTicker').value = calc.ticker || '';
                 document.getElementById('yearlyInitialCost').value = calc.initialCost;
                 document.getElementById('yearlyCurrentValue').value = calc.currentValue;
-                document.getElementById('buyDate').value = calc.buyDate ? calc.buyDate.split('T')[0] : '';
-                document.getElementById('sellDate').value = calc.sellDate ? calc.sellDate.split('T')[0] : '';
+                
+                // Handle both old ISO format and new date string format
+                if (calc.buyDate) {
+                    if (calc.buyDate.includes('T')) {
+                        document.getElementById('buyDate').value = calc.buyDate.split('T')[0];
+                    } else {
+                        document.getElementById('buyDate').value = calc.buyDate;
+                    }
+                }
+                
+                if (calc.sellDate) {
+                    if (calc.sellDate.includes('T')) {
+                        document.getElementById('sellDate').value = calc.sellDate.split('T')[0];
+                    } else {
+                        document.getElementById('sellDate').value = calc.sellDate;
+                    }
+                } else {
+                    document.getElementById('sellDate').value = '';
+                }
+                
                 document.getElementById('yearlyInvestmentName').value = calc.investmentName !== 'Unnamed Investment' ? calc.investmentName : '';
                 
                 // Scroll to yearly form
