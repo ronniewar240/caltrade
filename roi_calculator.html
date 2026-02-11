@@ -389,6 +389,64 @@
             font-size: 0.95rem;
         }
 
+        .action-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 6px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .action-btn.edit {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .action-btn.edit:hover {
+            background: rgba(0, 204, 255, 0.1);
+        }
+
+        .action-btn.delete {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .action-btn.delete:hover {
+            background: rgba(255, 51, 102, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.open {
+            background: rgba(0, 204, 255, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .status-badge.closed {
+            background: rgba(139, 146, 167, 0.2);
+            color: var(--text-secondary);
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2.5rem;
@@ -400,6 +458,15 @@
 
             .result-value {
                 font-size: 2rem;
+            }
+
+            .history-table {
+                font-size: 0.85rem;
+            }
+
+            .action-btn {
+                padding: 4px 8px;
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -484,8 +551,8 @@
                         <input type="date" id="buyDate" required>
                     </div>
                     <div class="form-group">
-                        <label for="sellDate">Sell Date (or Current Date)</label>
-                        <input type="date" id="sellDate" required>
+                        <label for="sellDate">Sell Date (Optional - leave blank for open positions)</label>
+                        <input type="date" id="sellDate">
                     </div>
                     <div class="form-group">
                         <label for="yearlyInvestmentName">Investment Name (Optional)</label>
@@ -571,17 +638,19 @@
                         <th>Investment Name</th>
                         <th>Buy Date</th>
                         <th>Sell Date</th>
+                        <th>Status</th>
                         <th>Period</th>
                         <th>Initial Cost</th>
                         <th>Current Value</th>
                         <th>Total ROI</th>
                         <th>Annualized ROI</th>
                         <th>Profit/Loss</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="historyBody">
                     <tr>
-                        <td colspan="11" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                        <td colspan="13" style="text-align: center; color: var(--text-secondary); padding: 40px;">
                             No calculations yet. Enter your investment details above to get started.
                         </td>
                     </tr>
@@ -595,9 +664,6 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             // Set default dates
-            const today = new Date();
-            document.getElementById('sellDate').valueAsDate = today;
-            
             // Set buy date to 1 year ago
             const yearAgo = new Date();
             yearAgo.setFullYear(yearAgo.getFullYear() - 1);
@@ -686,7 +752,12 @@
             const initialCost = parseFloat(document.getElementById('yearlyInitialCost').value);
             const currentValue = parseFloat(document.getElementById('yearlyCurrentValue').value);
             const buyDate = new Date(document.getElementById('buyDate').value);
-            const sellDate = new Date(document.getElementById('sellDate').value);
+            
+            // If sell date is not provided, use today's date
+            const sellDateInput = document.getElementById('sellDate').value;
+            const sellDate = sellDateInput ? new Date(sellDateInput) : new Date();
+            const isOpenPosition = !sellDateInput;
+            
             const investmentName = document.getElementById('yearlyInvestmentName').value || 'Unnamed Investment';
 
             if (initialCost === 0) {
@@ -735,7 +806,7 @@
 
             holdingPeriodEl.textContent = years.toFixed(2) + ' years';
             holdingPeriodEl.className = 'result-value neutral';
-            holdingPeriodDescEl.textContent = holdingPeriodText;
+            holdingPeriodDescEl.textContent = holdingPeriodText + (isOpenPosition ? ' (Open Position)' : '');
 
             totalROIEl.textContent = (totalROI >= 0 ? '+' : '') + totalROI.toFixed(2) + '%';
             annualizedROIEl.textContent = (annualizedROI >= 0 ? '+' : '') + annualizedROI.toFixed(2) + '%/year';
@@ -773,7 +844,8 @@
                 annualizedROI: annualizedROI,
                 avgAnnualGain: avgAnnualGain,
                 buyDate: buyDate.toISOString(),
-                sellDate: sellDate.toISOString(),
+                sellDate: sellDateInput ? sellDate.toISOString() : null,
+                isOpenPosition: isOpenPosition,
                 holdingPeriodText: holdingPeriodText,
                 type: 'yearly'
             };
@@ -794,7 +866,7 @@
             if (calculationHistory.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="11" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                        <td colspan="13" style="text-align: center; color: var(--text-secondary); padding: 40px;">
                             No calculations yet. Enter your investment details above to get started.
                         </td>
                     </tr>
@@ -802,13 +874,17 @@
                 return;
             }
 
-            calculationHistory.forEach(calc => {
+            calculationHistory.forEach((calc, index) => {
                 const row = document.createElement('tr');
                 const date = new Date(calc.date);
                 
                 const tickerText = calc.ticker ? `<span style="color: var(--accent-blue); font-weight: 700;">${calc.ticker}</span>` : '-';
                 const buyDateText = calc.buyDate ? formatDateOnly(new Date(calc.buyDate)) : '-';
-                const sellDateText = calc.sellDate ? formatDateOnly(new Date(calc.sellDate)) : '-';
+                const sellDateText = calc.sellDate ? formatDateOnly(new Date(calc.sellDate)) : 'Open';
+                const isOpen = calc.isOpenPosition || !calc.sellDate;
+                const statusBadge = isOpen 
+                    ? '<span class="status-badge open">Open</span>' 
+                    : '<span class="status-badge closed">Closed</span>';
                 const periodText = calc.years ? `${calc.years.toFixed(2)} years` : '-';
                 const annualizedText = calc.annualizedROI !== null && calc.annualizedROI !== undefined 
                     ? `${calc.annualizedROI >= 0 ? '+' : ''}${calc.annualizedROI.toFixed(2)}%/year` 
@@ -820,6 +896,7 @@
                     <td>${calc.investmentName}</td>
                     <td>${buyDateText}</td>
                     <td>${sellDateText}</td>
+                    <td>${statusBadge}</td>
                     <td>${periodText}</td>
                     <td>${formatCurrency(calc.initialCost)}</td>
                     <td>${formatCurrency(calc.currentValue)}</td>
@@ -832,9 +909,50 @@
                     <td style="color: ${calc.profitLoss >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">
                         ${formatCurrency(calc.profitLoss)}
                     </td>
+                    <td>
+                        <button class="action-btn edit" onclick="editEntry(${index})">Edit</button>
+                        <button class="action-btn delete" onclick="deleteEntry(${index})">Delete</button>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        function editEntry(index) {
+            const calc = calculationHistory[index];
+            
+            if (calc.type === 'yearly') {
+                // Fill yearly ROI form
+                document.getElementById('yearlyTicker').value = calc.ticker || '';
+                document.getElementById('yearlyInitialCost').value = calc.initialCost;
+                document.getElementById('yearlyCurrentValue').value = calc.currentValue;
+                document.getElementById('buyDate').value = calc.buyDate ? calc.buyDate.split('T')[0] : '';
+                document.getElementById('sellDate').value = calc.sellDate ? calc.sellDate.split('T')[0] : '';
+                document.getElementById('yearlyInvestmentName').value = calc.investmentName !== 'Unnamed Investment' ? calc.investmentName : '';
+                
+                // Scroll to yearly form
+                document.getElementById('yearlyRoiForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                // Fill basic ROI form
+                document.getElementById('ticker').value = calc.ticker || '';
+                document.getElementById('initialCost').value = calc.initialCost;
+                document.getElementById('currentValue').value = calc.currentValue;
+                document.getElementById('investmentName').value = calc.investmentName !== 'Unnamed Investment' ? calc.investmentName : '';
+                
+                // Scroll to basic form
+                document.getElementById('roiForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Delete the old entry after editing
+            deleteEntry(index, true);
+        }
+
+        function deleteEntry(index, skipConfirm = false) {
+            if (skipConfirm || confirm('Are you sure you want to delete this entry?')) {
+                calculationHistory.splice(index, 1);
+                localStorage.setItem('roiHistory', JSON.stringify(calculationHistory));
+                renderHistory();
+            }
         }
 
         function clearHistory() {
