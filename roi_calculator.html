@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Calendar - Daily P&L Tracker</title>
+    <title>ROI Calculator - Investment Returns</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         * {
@@ -29,6 +29,7 @@
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
         /* Animated background */
@@ -53,7 +54,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
             position: relative;
@@ -93,10 +94,26 @@
             font-weight: 400;
         }
 
-        .stats-grid {
+        .nav-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-green);
+            transform: translateX(-5px);
+        }
+
+        .calculator-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
             margin-bottom: 40px;
             animation: fadeIn 1s ease 0.3s both;
         }
@@ -112,284 +129,34 @@
             }
         }
 
-        .stat-card {
+        .calculator-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            padding: 24px;
+            padding: 40px;
             border-radius: 12px;
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
         }
 
-        .stat-card::before {
+        .calculator-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--accent-blue);
-            transition: width 0.3s ease;
-        }
-
-        .stat-card:hover::before {
             width: 100%;
-            opacity: 0.1;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
         }
 
-        .stat-card:hover {
+        .calculator-card:hover {
             transform: translateY(-4px);
             border-color: var(--accent-blue);
         }
 
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
+        .card-title {
             font-family: 'Syne', sans-serif;
-        }
-
-        .stat-value.positive {
-            color: var(--accent-green);
-        }
-
-        .stat-value.negative {
-            color: var(--accent-red);
-        }
-
-        .calendar-section {
-            animation: fadeIn 1s ease 0.6s both;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
-            font-weight: 600;
-        }
-
-        .add-entry-btn {
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-            border: none;
-            color: var(--bg-dark);
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .add-entry-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .calendar-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .calendar-table thead {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 204, 255, 0.1));
-        }
-
-        .calendar-table th {
-            padding: 18px 16px;
-            text-align: left;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            font-weight: 700;
-        }
-
-        .calendar-table tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: all 0.2s ease;
-        }
-
-        .calendar-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .calendar-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .calendar-table td {
-            padding: 16px;
-            font-size: 0.95rem;
-        }
-
-        .date-cell {
-            font-weight: 600;
-            color: var(--accent-blue);
-        }
-
-        .weekend {
-            background: rgba(255, 255, 255, 0.01);
-        }
-
-        .weekend .date-cell {
-            color: var(--text-secondary);
-        }
-
-        .pl-input {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            width: 140px;
-            transition: all 0.3s ease;
-        }
-
-        .pl-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.1);
-        }
-
-        .notes-input {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-
-        .notes-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.1);
-        }
-
-        .win-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .win-badge.win {
-            background: rgba(0, 255, 136, 0.2);
-            color: var(--accent-green);
-        }
-
-        .win-badge.loss {
-            background: rgba(255, 51, 102, 0.2);
-            color: var(--accent-red);
-        }
-
-        .running-total {
-            font-weight: 700;
-            font-family: 'Syne', sans-serif;
-        }
-
-        .running-total.positive {
-            color: var(--accent-green);
-        }
-
-        .running-total.negative {
-            color: var(--accent-red);
-        }
-
-        .chart-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            margin-top: 40px;
-            animation: fadeIn 1s ease 0.9s both;
-        }
-
-        .chart-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        canvas {
-            max-height: 300px;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal.active {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 500px;
-            width: 90%;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 30px;
             font-weight: 600;
         }
@@ -407,65 +174,219 @@
             color: var(--text-secondary);
         }
 
-        .form-group input,
-        .form-group textarea {
+        .form-group input {
             width: 100%;
             background: var(--bg-dark);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 12px 16px;
+            padding: 14px 18px;
             border-radius: 8px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
+            font-size: 1.1rem;
             transition: all 0.3s ease;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group input:focus {
             outline: none;
             border-color: var(--accent-blue);
             box-shadow: 0 0 0 3px rgba(0, 204, 255, 0.1);
         }
 
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 30px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px 24px;
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            border: none;
+            color: var(--bg-dark);
+            padding: 16px 32px;
             border-radius: 8px;
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border: none;
+            margin-top: 10px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-            color: var(--bg-dark);
-        }
-
-        .btn-primary:hover {
+        .calculate-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
         }
 
-        .btn-secondary {
-            background: transparent;
-            color: var(--text-secondary);
+        .results-card {
+            background: var(--bg-card);
             border: 1px solid var(--border);
+            padding: 40px;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--text-secondary);
+        .results-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+        }
+
+        .result-item {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .result-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .result-value.positive {
+            color: var(--accent-green);
+        }
+
+        .result-value.negative {
+            color: var(--accent-red);
+        }
+
+        .result-value.neutral {
+            color: var(--accent-blue);
+        }
+
+        .result-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .formula-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 204, 255, 0.05));
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 40px;
+            animation: fadeIn 1s ease 0.6s both;
+        }
+
+        .formula-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .formula {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            overflow-x: auto;
+        }
+
+        .formula-explanation {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .history-section {
+            margin-top: 40px;
+            animation: fadeIn 1s ease 1.2s both;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 51, 102, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .history-table thead {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 204, 255, 0.1));
+        }
+
+        .history-table th {
+            padding: 18px 16px;
+            text-align: left;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .history-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .history-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .history-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .history-table td {
+            padding: 16px;
+            font-size: 0.95rem;
         }
 
         .action-btn {
@@ -506,329 +427,24 @@
             background: rgba(255, 51, 102, 0.1);
         }
 
-        /* Calendar View Styles */
-        .view-toggle {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .view-btn {
-            padding: 10px 20px;
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            border-radius: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .view-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .view-btn.active {
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-            color: var(--bg-dark);
-            border-color: transparent;
-        }
-
-        .calendar-grid {
-            display: none;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-        }
-
-        .calendar-grid.active {
-            display: grid;
-        }
-
-        .calendar-table-view {
-            display: block;
-        }
-
-        .calendar-table-view.hidden {
-            display: none;
-        }
-
-        .calendar-header-cell {
-            text-align: center;
-            padding: 12px 8px;
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
             font-weight: 700;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            position: relative;
-            min-height: 100px;
-        }
-
-        .calendar-day:hover {
-            border-color: var(--accent-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 204, 255, 0.2);
-        }
-
-        .calendar-day.other-month {
-            opacity: 0.3;
-            pointer-events: none;
-        }
-
-        .calendar-day.today {
-            border-color: var(--accent-blue);
-            background: rgba(0, 204, 255, 0.05);
-        }
-
-        .calendar-day.has-trade {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .calendar-day.profit {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 255, 136, 0.05));
-            border-color: var(--accent-green);
-        }
-
-        .calendar-day.loss {
-            background: linear-gradient(135deg, rgba(255, 51, 102, 0.15), rgba(255, 51, 102, 0.05));
-            border-color: var(--accent-red);
-        }
-
-        .calendar-day-number {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-        }
-
-        .calendar-day.profit .calendar-day-number,
-        .calendar-day.loss .calendar-day-number {
-            color: var(--text-primary);
-        }
-
-        .calendar-day-pl {
-            font-size: 0.85rem;
-            font-weight: 700;
-            font-family: 'Syne', sans-serif;
-            margin-top: 4px;
-        }
-
-        .calendar-day.profit .calendar-day-pl {
-            color: var(--accent-green);
-        }
-
-        .calendar-day.loss .calendar-day-pl {
-            color: var(--accent-red);
-        }
-
-        .calendar-day-trades {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            margin-top: 2px;
-        }
-
-        .calendar-month-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .calendar-month-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .month-nav-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .month-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
-        }
-
-        /* Monthly Target Styles */
-        .monthly-target-section {
-            margin-bottom: 40px;
-            animation: fadeIn 1s ease 0.5s both;
-        }
-
-        .target-card {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 204, 255, 0.05));
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .target-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-        }
-
-        .target-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .target-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .target-edit-btn {
-            background: transparent;
-            border: 1px solid var(--accent-blue);
-            color: var(--accent-blue);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .target-edit-btn:hover {
-            background: rgba(0, 204, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .target-display {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .target-amount,
-        .target-current {
-            background: var(--bg-card);
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .target-label {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .target-value,
-        .target-current-value {
-            display: block;
-            font-family: 'Syne', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-
-        .target-value {
+        .status-badge.open {
+            background: rgba(0, 204, 255, 0.2);
             color: var(--accent-blue);
         }
 
-        .target-current-value {
-            color: var(--text-primary);
-        }
-
-        .target-current-value.positive {
-            color: var(--accent-green);
-        }
-
-        .target-current-value.negative {
-            color: var(--accent-red);
-        }
-
-        .target-progress-container {
-            margin-top: 20px;
-        }
-
-        .target-progress-bar {
-            width: 100%;
-            height: 16px;
-            background: var(--bg-dark);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            margin-bottom: 12px;
-        }
-
-        .target-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
-            border-radius: 8px;
-            transition: width 0.5s ease;
-            position: relative;
-        }
-
-        .target-progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .target-progress-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
+        .status-badge.closed {
+            background: rgba(139, 146, 167, 0.2);
             color: var(--text-secondary);
-        }
-
-        #targetProgressPercent {
-            font-weight: 700;
-            color: var(--accent-green);
         }
 
         @media (max-width: 768px) {
@@ -836,43 +452,21 @@
                 font-size: 2.5rem;
             }
 
-            .stats-grid {
+            .calculator-grid {
                 grid-template-columns: 1fr;
             }
 
-            .calendar-table {
+            .result-value {
+                font-size: 2rem;
+            }
+
+            .history-table {
                 font-size: 0.85rem;
             }
 
-            .calendar-table th,
-            .calendar-table td {
-                padding: 12px 8px;
-            }
-
-            .calendar-day {
-                min-height: 80px;
-                padding: 6px;
-            }
-
-            .calendar-day-number {
-                font-size: 0.8rem;
-            }
-
-            .calendar-day-pl {
-                font-size: 0.75rem;
-            }
-
-            .calendar-day-trades {
-                font-size: 0.65rem;
-            }
-
-            .target-display {
-                grid-template-columns: 1fr;
-            }
-
-            .target-value,
-            .target-current-value {
-                font-size: 1.5rem;
+            .action-btn {
+                padding: 4px 8px;
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -880,620 +474,506 @@
 <body>
     <div class="container">
         <header>
-            <h1>TRADING CALENDAR</h1>
-            <p class="subtitle">Track your daily profit & loss with precision</p>
-            <a href="roi_calculator.html" style="display: inline-block; margin-top: 15px; color: var(--accent-blue); text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">ROI Calculator →</a>
+            <h1>ROI CALCULATOR</h1>
+            <p class="subtitle">Calculate your investment returns with precision</p>
+            <a href="index.html" class="nav-link">← Back to Trading Calendar</a>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Total P&L</div>
-                <div class="stat-value" id="totalPL">$0.00</div>
+        <div class="calculator-grid">
+            <div class="calculator-card">
+                <h2 class="card-title">Investment Details</h2>
+                <form id="roiForm">
+                    <div class="form-group">
+                        <label for="ticker">Ticker Symbol (Optional)</label>
+                        <input type="text" id="ticker" placeholder="e.g., AAPL, TSLA, BTC" style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label for="initialCost">Initial Cost ($)</label>
+                        <input type="number" id="initialCost" step="0.01" placeholder="10000.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentValue">Current Value ($)</label>
+                        <input type="number" id="currentValue" step="0.01" placeholder="12500.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="investmentName">Investment Name (Optional)</label>
+                        <input type="text" id="investmentName" placeholder="e.g., Stock Portfolio, Real Estate">
+                    </div>
+                    <button type="submit" class="calculate-btn">Calculate ROI</button>
+                </form>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">Win Rate</div>
-                <div class="stat-value" id="winRate">0%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Avg Daily P&L</div>
-                <div class="stat-value" id="avgPL">$0.00</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Best Day</div>
-                <div class="stat-value positive" id="bestDay">$0.00</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Worst Day</div>
-                <div class="stat-value negative" id="worstDay">$0.00</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Trading Days</div>
-                <div class="stat-value" id="tradingDays">0</div>
-            </div>
-        </div>
 
-        <div class="monthly-target-section">
-            <div class="target-card">
-                <div class="target-header">
-                    <h3 class="target-title">Monthly Target</h3>
-                    <button class="target-edit-btn" onclick="openTargetModal()">Set Target</button>
-                </div>
-                <div class="target-display">
-                    <div class="target-amount">
-                        <span class="target-label">Target:</span>
-                        <span class="target-value" id="monthlyTarget">$0.00</span>
+            <div class="results-card">
+                <h2 class="card-title">Results</h2>
+                <div id="resultsContainer">
+                    <div class="result-item">
+                        <div class="result-label">ROI Percentage</div>
+                        <div class="result-value neutral" id="roiPercent">-%</div>
+                        <div class="result-description">Return on your investment</div>
                     </div>
-                    <div class="target-current">
-                        <span class="target-label">Current:</span>
-                        <span class="target-current-value" id="currentMonthPL">$0.00</span>
+                    <div class="result-item">
+                        <div class="result-label">Profit/Loss</div>
+                        <div class="result-value neutral" id="profitLoss">$0.00</div>
+                        <div class="result-description">Net gain or loss from investment</div>
                     </div>
-                </div>
-                <div class="target-progress-container">
-                    <div class="target-progress-bar">
-                        <div class="target-progress-fill" id="targetProgressFill"></div>
-                    </div>
-                    <div class="target-progress-text">
-                        <span id="targetProgressPercent">0%</span>
-                        <span id="targetRemaining">$0.00 remaining</span>
+                    <div class="result-item">
+                        <div class="result-label">Investment Performance</div>
+                        <div class="result-value neutral" id="performance">-</div>
+                        <div class="result-description" id="performanceDesc">Enter values to calculate</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="calendar-section">
+        <!-- Yearly ROI Calculator Section -->
+        <div class="section-header" style="margin-top: 60px;">
+            <h2 class="section-title">Annualized ROI Calculator</h2>
+        </div>
+
+        <div class="calculator-grid">
+            <div class="calculator-card">
+                <h2 class="card-title">Time-Based Investment</h2>
+                <form id="yearlyRoiForm">
+                    <div class="form-group">
+                        <label for="yearlyTicker">Ticker Symbol (Optional)</label>
+                        <input type="text" id="yearlyTicker" placeholder="e.g., AAPL, TSLA, BTC" style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label for="yearlyInitialCost">Initial Investment ($)</label>
+                        <input type="number" id="yearlyInitialCost" step="0.01" placeholder="10000.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="yearlyCurrentValue">Current Value ($)</label>
+                        <input type="number" id="yearlyCurrentValue" step="0.01" placeholder="15000.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="buyDate">Buy Date</label>
+                        <input type="date" id="buyDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sellDate">Sell Date (Optional - leave blank for open positions)</label>
+                        <input type="date" id="sellDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="yearlyInvestmentName">Investment Name (Optional)</label>
+                        <input type="text" id="yearlyInvestmentName" placeholder="e.g., Long-term Portfolio">
+                    </div>
+                    <button type="submit" class="calculate-btn">Calculate Annualized ROI</button>
+                </form>
+            </div>
+
+            <div class="results-card">
+                <h2 class="card-title">Annualized Results</h2>
+                <div id="yearlyResultsContainer">
+                    <div class="result-item">
+                        <div class="result-label">Holding Period</div>
+                        <div class="result-value neutral" id="holdingPeriod">-</div>
+                        <div class="result-description" id="holdingPeriodDesc">Enter dates to calculate</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Total ROI</div>
+                        <div class="result-value neutral" id="yearlyTotalROI">-%</div>
+                        <div class="result-description">Overall return on investment</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Annualized ROI</div>
+                        <div class="result-value neutral" id="yearlyAnnualizedROI">-%</div>
+                        <div class="result-description">Average yearly return (CAGR)</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Total Profit/Loss</div>
+                        <div class="result-value neutral" id="yearlyProfitLoss">$0.00</div>
+                        <div class="result-description">Net gain or loss over time period</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Average Annual Gain</div>
+                        <div class="result-value neutral" id="yearlyAvgGain">$0.00</div>
+                        <div class="result-description">Average profit per year</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-section">
             <div class="section-header">
-                <h2>Trade Log</h2>
-                <button class="add-entry-btn" onclick="openModal()">+ Add Entry</button>
+                <h2 class="section-title">Calculation History</h2>
+                <button class="clear-btn" onclick="clearHistory()">Clear History</button>
             </div>
-
-            <div class="view-toggle">
-                <button class="view-btn active" onclick="switchView('table')">Table View</button>
-                <button class="view-btn" onclick="switchView('calendar')">Calendar View</button>
-            </div>
-
-            <div class="calendar-table-view">
-                <table class="calendar-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>P&L</th>
-                            <th>Running Total</th>
-                            <th>Result</th>
-                            <th>Trades</th>
-                            <th>Strategy</th>
-                            <th>Notes</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="calendarBody">
-                        <!-- Entries will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div id="calendarView">
-                <div class="calendar-month-nav">
-                    <button class="month-nav-btn" onclick="changeMonth(-1)">← Previous</button>
-                    <h3 class="calendar-month-title" id="currentMonthTitle"></h3>
-                    <button class="month-nav-btn" onclick="changeMonth(1)">Next →</button>
-                </div>
-                <div class="calendar-grid" id="calendarGrid">
-                    <!-- Calendar will be populated here -->
-                </div>
-            </div>
-        </div>
-
-        <div class="chart-container">
-            <h3 class="chart-title">Equity Curve</h3>
-            <canvas id="equityChart"></canvas>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Calculation Date</th>
+                        <th>Ticker</th>
+                        <th>Investment Name</th>
+                        <th>Buy Date</th>
+                        <th>Sell Date</th>
+                        <th>Status</th>
+                        <th>Period</th>
+                        <th>Initial Cost</th>
+                        <th>Current Value</th>
+                        <th>Total ROI</th>
+                        <th>Annualized ROI</th>
+                        <th>Profit/Loss</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr>
+                        <td colspan="13" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            No calculations yet. Enter your investment details above to get started.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal" id="entryModal">
-        <div class="modal-content">
-            <h3 class="modal-header" id="modalTitle">New Trade Entry</h3>
-            <form id="entryForm">
-                <div class="form-group">
-                    <label for="entryDate">Date</label>
-                    <input type="date" id="entryDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="entryPL">Profit/Loss ($)</label>
-                    <input type="number" id="entryPL" step="0.01" placeholder="0.00" required>
-                </div>
-                <div class="form-group">
-                    <label for="entryTradeCount">Number of Trades</label>
-                    <input type="number" id="entryTradeCount" min="0" placeholder="0" value="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="entryStrategy">Strategy</label>
-                    <input type="text" id="entryStrategy" placeholder="e.g., Momentum, Scalping">
-                </div>
-                <div class="form-group">
-                    <label for="entryNotes">Notes</label>
-                    <textarea id="entryNotes" rows="3" placeholder="Trade details, market conditions, etc."></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Entry</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Target Modal -->
-    <div class="modal" id="targetModal">
-        <div class="modal-content">
-            <h3 class="modal-header">Set Monthly Target</h3>
-            <form id="targetForm">
-                <div class="form-group">
-                    <label for="targetMonth">Month</label>
-                    <input type="month" id="targetMonth" required>
-                </div>
-                <div class="form-group">
-                    <label for="targetAmount">Target Amount ($)</label>
-                    <input type="number" id="targetAmount" step="0.01" placeholder="0.00" required>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeTargetModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Target</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let trades = JSON.parse(localStorage.getItem('trades')) || [];
-        let monthlyTargets = JSON.parse(localStorage.getItem('monthlyTargets')) || {};
-        let chart;
-        let editingIndex = null;
-        let currentMonth = new Date();
-        let currentView = 'table';
+        let calculationHistory = JSON.parse(localStorage.getItem('roiHistory')) || [];
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('entryDate').valueAsDate = new Date();
-            const now = new Date();
-            const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            document.getElementById('targetMonth').value = currentMonthStr;
-            renderTrades();
-            updateStats();
-            updateMonthlyTarget();
-            initChart();
-            renderCalendarView();
-        });
-
-        // Monthly Target Functions
-        function openTargetModal() {
-            document.getElementById('targetModal').classList.add('active');
-            const now = new Date();
-            const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            document.getElementById('targetMonth').value = currentMonthStr;
-            document.getElementById('targetAmount').value = monthlyTargets[currentMonthStr] || '';
-        }
-
-        function closeTargetModal() {
-            document.getElementById('targetModal').classList.remove('active');
-            document.getElementById('targetForm').reset();
-        }
-
-        document.getElementById('targetForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const month = document.getElementById('targetMonth').value;
-            const amount = parseFloat(document.getElementById('targetAmount').value);
-            
-            monthlyTargets[month] = amount;
-            localStorage.setItem('monthlyTargets', JSON.stringify(monthlyTargets));
-            
-            updateMonthlyTarget();
-            closeTargetModal();
-        });
-
-        function updateMonthlyTarget() {
-            const now = new Date();
-            const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const target = monthlyTargets[currentMonthStr] || 0;
-            
-            // Calculate current month P&L
-            const monthTrades = trades.filter(trade => {
-                return trade.date.startsWith(currentMonthStr);
-            });
-            
-            const currentPL = monthTrades.reduce((sum, t) => sum + t.pl, 0);
-            
-            // Update display
-            document.getElementById('monthlyTarget').textContent = formatCurrency(target);
-            document.getElementById('currentMonthPL').textContent = formatCurrency(currentPL);
-            
-            const currentValueEl = document.getElementById('currentMonthPL');
-            currentValueEl.className = 'target-current-value';
-            if (currentPL > 0) currentValueEl.classList.add('positive');
-            else if (currentPL < 0) currentValueEl.classList.add('negative');
-            
-            // Update progress bar
-            let progressPercent = 0;
-            if (target > 0) {
-                progressPercent = Math.min((currentPL / target) * 100, 100);
-            }
-            
-            const progressFill = document.getElementById('targetProgressFill');
-            progressFill.style.width = Math.max(0, progressPercent) + '%';
-            
-            document.getElementById('targetProgressPercent').textContent = progressPercent.toFixed(1) + '%';
-            
-            const remaining = target - currentPL;
-            const remainingText = remaining > 0 
-                ? formatCurrency(remaining) + ' remaining'
-                : remaining < 0
-                    ? formatCurrency(Math.abs(remaining)) + ' over target!'
-                    : 'Target reached!';
-            
-            document.getElementById('targetRemaining').textContent = remainingText;
-        }
-
-        // Close target modal on outside click
-        document.getElementById('targetModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeTargetModal();
-            }
-        });
-
-        // View switching
-        function switchView(view) {
-            currentView = view;
-            const buttons = document.querySelectorAll('.view-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            
-            if (view === 'table') {
-                document.querySelector('.calendar-table-view').classList.remove('hidden');
-                document.getElementById('calendarView').style.display = 'none';
-                buttons[0].classList.add('active');
-            } else {
-                document.querySelector('.calendar-table-view').classList.add('hidden');
-                document.getElementById('calendarView').style.display = 'block';
-                document.getElementById('calendarGrid').classList.add('active');
-                buttons[1].classList.add('active');
-                renderCalendarView();
-            }
-        }
-
-        // Calendar navigation
-        function changeMonth(delta) {
-            currentMonth.setMonth(currentMonth.getMonth() + delta);
-            renderCalendarView();
-        }
-
-        function renderCalendarView() {
-            const year = currentMonth.getFullYear();
-            const month = currentMonth.getMonth();
-            
-            // Update title
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                              'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('currentMonthTitle').textContent = `${monthNames[month]} ${year}`;
-            
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-            
-            // Add day headers
-            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayNames.forEach(day => {
-                const header = document.createElement('div');
-                header.className = 'calendar-header-cell';
-                header.textContent = day;
-                grid.appendChild(header);
-            });
-            
-            // Get first day of month and total days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            
-            // Add previous month's days
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const day = daysInPrevMonth - i;
-                const cell = createCalendarDay(new Date(year, month - 1, day), true);
-                grid.appendChild(cell);
-            }
-            
-            // Add current month's days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const cell = createCalendarDay(date, false);
-                grid.appendChild(cell);
-            }
-            
-            // Add next month's days to fill grid
-            const remainingCells = 42 - (firstDay + daysInMonth);
-            for (let day = 1; day <= remainingCells; day++) {
-                const cell = createCalendarDay(new Date(year, month + 1, day), true);
-                grid.appendChild(cell);
-            }
-        }
-
-        function createCalendarDay(date, isOtherMonth) {
-            const cell = document.createElement('div');
-            cell.className = 'calendar-day';
-            if (isOtherMonth) cell.classList.add('other-month');
-            
-            // Check if today
+            // Set buy date to today
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const checkDate = new Date(date);
-            checkDate.setHours(0, 0, 0, 0);
+            const todayString = today.getFullYear() + '-' + 
+                                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                                String(today.getDate()).padStart(2, '0');
+            document.getElementById('buyDate').value = todayString;
             
-            if (checkDate.getTime() === today.getTime()) {
-                cell.classList.add('today');
-            }
-            
-            // Find trades for this date - format as YYYY-MM-DD
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-            
-            const dayTrades = trades.filter(t => t.date === dateStr);
-            
-            const dayNumber = document.createElement('div');
-            dayNumber.className = 'calendar-day-number';
-            dayNumber.textContent = date.getDate();
-            cell.appendChild(dayNumber);
-            
-            if (dayTrades.length > 0) {
-                const totalPL = dayTrades.reduce((sum, t) => sum + t.pl, 0);
-                const totalTradeCount = dayTrades.reduce((sum, t) => sum + (t.tradeCount != null ? t.tradeCount : 0), 0);
-                
-                cell.classList.add('has-trade');
-                cell.classList.add(totalPL >= 0 ? 'profit' : 'loss');
-                
-                const plDiv = document.createElement('div');
-                plDiv.className = 'calendar-day-pl';
-                plDiv.textContent = formatCurrency(totalPL);
-                cell.appendChild(plDiv);
-                
-                const tradesDiv = document.createElement('div');
-                tradesDiv.className = 'calendar-day-trades';
-                tradesDiv.textContent = totalTradeCount === 0 ? 'no trades' : `${totalTradeCount} trade${totalTradeCount > 1 ? 's' : ''}`;
-                cell.appendChild(tradesDiv);
-                
-                cell.onclick = () => {
-                    if (dayTrades.length === 1) {
-                        const index = trades.indexOf(dayTrades[0]);
-                        openEditModal(index);
-                    } else {
-                        // If multiple trades on same day, switch to table view
-                        switchView('table');
-                    }
-                };
-            } else if (!isOtherMonth) {
-                cell.onclick = () => {
-                    openModal();
-                    document.getElementById('entryDate').value = dateStr;
-                };
-            }
-            
-            return cell;
-        }
+            renderHistory();
+        });
 
-        // Modal functions
-        function openModal() {
-            editingIndex = null;
-            document.getElementById('modalTitle').textContent = 'New Trade Entry';
-            document.getElementById('entryModal').classList.add('active');
-        }
-
-        function openEditModal(index) {
-            editingIndex = index;
-            const trade = trades[index];
-            
-            document.getElementById('modalTitle').textContent = 'Edit Trade Entry';
-            document.getElementById('entryDate').value = trade.date;
-            document.getElementById('entryPL').value = trade.pl;
-            document.getElementById('entryTradeCount').value = trade.tradeCount || 1;
-            document.getElementById('entryStrategy').value = trade.strategy || '';
-            document.getElementById('entryNotes').value = trade.notes || '';
-            
-            document.getElementById('entryModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('entryModal').classList.remove('active');
-            document.getElementById('entryForm').reset();
-            document.getElementById('entryDate').valueAsDate = new Date();
-            document.getElementById('entryTradeCount').value = 0;
-            editingIndex = null;
-        }
-
-        function deleteTrade(index) {
-            if (confirm('Are you sure you want to delete this trade entry?')) {
-                trades.splice(index, 1);
-                localStorage.setItem('trades', JSON.stringify(trades));
-                renderTrades();
-                updateStats();
-                updateChart();
-                updateMonthlyTarget();
-                if (currentView === 'calendar') {
-                    renderCalendarView();
-                }
-            }
-        }
-
-        // Form submission
-        document.getElementById('entryForm').addEventListener('submit', function(e) {
+        document.getElementById('roiForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const tradeData = {
-                date: document.getElementById('entryDate').value,
-                pl: parseFloat(document.getElementById('entryPL').value),
-                tradeCount: parseInt(document.getElementById('entryTradeCount').value),
-                strategy: document.getElementById('entryStrategy').value,
-                notes: document.getElementById('entryNotes').value
+
+            const ticker = document.getElementById('ticker').value.toUpperCase().trim();
+            const initialCost = parseFloat(document.getElementById('initialCost').value);
+            const currentValue = parseFloat(document.getElementById('currentValue').value);
+            const investmentName = document.getElementById('investmentName').value || 'Unnamed Investment';
+
+            if (initialCost === 0) {
+                alert('Initial cost cannot be zero');
+                return;
+            }
+
+            // Calculate ROI
+            const profitLoss = currentValue - initialCost;
+            const roi = (profitLoss / initialCost) * 100;
+
+            // Update results display
+            const roiPercentEl = document.getElementById('roiPercent');
+            const profitLossEl = document.getElementById('profitLoss');
+            const performanceEl = document.getElementById('performance');
+            const performanceDescEl = document.getElementById('performanceDesc');
+
+            roiPercentEl.textContent = roi.toFixed(2) + '%';
+            profitLossEl.textContent = formatCurrency(profitLoss);
+
+            // Set colors based on profit/loss
+            if (roi > 0) {
+                roiPercentEl.className = 'result-value positive';
+                profitLossEl.className = 'result-value positive';
+                performanceEl.className = 'result-value positive';
+                performanceEl.textContent = 'Profitable';
+                performanceDescEl.textContent = 'Your investment has generated positive returns';
+            } else if (roi < 0) {
+                roiPercentEl.className = 'result-value negative';
+                profitLossEl.className = 'result-value negative';
+                performanceEl.className = 'result-value negative';
+                performanceEl.textContent = 'Loss';
+                performanceDescEl.textContent = 'Your investment has decreased in value';
+            } else {
+                roiPercentEl.className = 'result-value neutral';
+                profitLossEl.className = 'result-value neutral';
+                performanceEl.className = 'result-value neutral';
+                performanceEl.textContent = 'Break Even';
+                performanceDescEl.textContent = 'Your investment value has remained unchanged';
+            }
+
+            // Add to history
+            const calculation = {
+                date: new Date().toISOString(),
+                ticker: ticker || null,
+                investmentName: investmentName,
+                initialCost: initialCost,
+                currentValue: currentValue,
+                profitLoss: profitLoss,
+                roi: roi,
+                years: null,
+                annualizedROI: null,
+                buyDate: null,
+                sellDate: null,
+                type: 'basic'
             };
 
-            if (editingIndex !== null) {
-                // Update existing trade
-                trades[editingIndex] = tradeData;
-            } else {
-                // Add new trade
-                trades.push(tradeData);
+            calculationHistory.unshift(calculation);
+            if (calculationHistory.length > 50) {
+                calculationHistory = calculationHistory.slice(0, 50);
             }
 
-            trades.sort((a, b) => new Date(a.date) - new Date(b.date));
-            localStorage.setItem('trades', JSON.stringify(trades));
-
-            renderTrades();
-            updateStats();
-            updateChart();
-            updateMonthlyTarget();
-            if (currentView === 'calendar') {
-                renderCalendarView();
-            }
-            closeModal();
+            localStorage.setItem('roiHistory', JSON.stringify(calculationHistory));
+            renderHistory();
         });
 
-        function renderTrades() {
-            const tbody = document.getElementById('calendarBody');
+        // Yearly ROI Calculator with Date-based calculation
+        document.getElementById('yearlyRoiForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const ticker = document.getElementById('yearlyTicker').value.toUpperCase().trim();
+            const initialCost = parseFloat(document.getElementById('yearlyInitialCost').value);
+            const currentValue = parseFloat(document.getElementById('yearlyCurrentValue').value);
+            
+            // Parse dates without timezone issues
+            const buyDateStr = document.getElementById('buyDate').value;
+            const buyDate = new Date(buyDateStr + 'T00:00:00');
+            
+            // If sell date is not provided, use today's date
+            const sellDateInput = document.getElementById('sellDate').value;
+            const sellDate = sellDateInput ? new Date(sellDateInput + 'T00:00:00') : new Date();
+            const isOpenPosition = !sellDateInput;
+            
+            const investmentName = document.getElementById('yearlyInvestmentName').value || 'Unnamed Investment';
+
+            if (initialCost === 0) {
+                alert('Initial cost cannot be zero');
+                return;
+            }
+
+            if (sellDate <= buyDate) {
+                alert('Sell date must be after buy date');
+                return;
+            }
+
+            // Calculate the number of years between dates
+            const timeDiff = sellDate.getTime() - buyDate.getTime();
+            const daysDiff = timeDiff / (1000 * 3600 * 24);
+            const years = daysDiff / 365.25; // Using 365.25 to account for leap years
+
+            // Calculate holding period in a readable format
+            const yearsPart = Math.floor(years);
+            const remainingDays = Math.floor(daysDiff - (yearsPart * 365.25));
+            const monthsPart = Math.floor(remainingDays / 30.44);
+            const daysPart = Math.floor(remainingDays - (monthsPart * 30.44));
+
+            let holdingPeriodText = '';
+            if (yearsPart > 0) holdingPeriodText += `${yearsPart} ${yearsPart === 1 ? 'year' : 'years'}`;
+            if (monthsPart > 0) holdingPeriodText += `${holdingPeriodText ? ', ' : ''}${monthsPart} ${monthsPart === 1 ? 'month' : 'months'}`;
+            if (daysPart > 0 || holdingPeriodText === '') holdingPeriodText += `${holdingPeriodText ? ', ' : ''}${daysPart} ${daysPart === 1 ? 'day' : 'days'}`;
+
+            // Calculate Total ROI
+            const profitLoss = currentValue - initialCost;
+            const totalROI = (profitLoss / initialCost) * 100;
+
+            // Calculate Annualized ROI (CAGR)
+            const annualizedROI = (Math.pow(currentValue / initialCost, 1 / years) - 1) * 100;
+
+            // Average annual gain
+            const avgAnnualGain = profitLoss / years;
+
+            // Update results display
+            const holdingPeriodEl = document.getElementById('holdingPeriod');
+            const holdingPeriodDescEl = document.getElementById('holdingPeriodDesc');
+            const totalROIEl = document.getElementById('yearlyTotalROI');
+            const annualizedROIEl = document.getElementById('yearlyAnnualizedROI');
+            const profitLossEl = document.getElementById('yearlyProfitLoss');
+            const avgGainEl = document.getElementById('yearlyAvgGain');
+
+            holdingPeriodEl.textContent = years.toFixed(2) + ' years';
+            holdingPeriodEl.className = 'result-value neutral';
+            holdingPeriodDescEl.textContent = holdingPeriodText + (isOpenPosition ? ' (Open Position)' : '');
+
+            totalROIEl.textContent = (totalROI >= 0 ? '+' : '') + totalROI.toFixed(2) + '%';
+            annualizedROIEl.textContent = (annualizedROI >= 0 ? '+' : '') + annualizedROI.toFixed(2) + '%/year';
+            profitLossEl.textContent = formatCurrency(profitLoss);
+            avgGainEl.textContent = formatCurrency(avgAnnualGain) + '/year';
+
+            // Set colors based on profit/loss
+            if (totalROI > 0) {
+                totalROIEl.className = 'result-value positive';
+                annualizedROIEl.className = 'result-value positive';
+                profitLossEl.className = 'result-value positive';
+                avgGainEl.className = 'result-value positive';
+            } else if (totalROI < 0) {
+                totalROIEl.className = 'result-value negative';
+                annualizedROIEl.className = 'result-value negative';
+                profitLossEl.className = 'result-value negative';
+                avgGainEl.className = 'result-value negative';
+            } else {
+                totalROIEl.className = 'result-value neutral';
+                annualizedROIEl.className = 'result-value neutral';
+                profitLossEl.className = 'result-value neutral';
+                avgGainEl.className = 'result-value neutral';
+            }
+
+            // Add to history - store date strings to avoid timezone issues
+            const calculation = {
+                date: new Date().toISOString(),
+                ticker: ticker || null,
+                investmentName: investmentName,
+                initialCost: initialCost,
+                currentValue: currentValue,
+                profitLoss: profitLoss,
+                roi: totalROI,
+                years: years,
+                annualizedROI: annualizedROI,
+                avgAnnualGain: avgAnnualGain,
+                buyDate: buyDateStr,
+                sellDate: sellDateInput || null,
+                isOpenPosition: isOpenPosition,
+                holdingPeriodText: holdingPeriodText,
+                type: 'yearly'
+            };
+
+            calculationHistory.unshift(calculation);
+            if (calculationHistory.length > 50) {
+                calculationHistory = calculationHistory.slice(0, 50);
+            }
+
+            localStorage.setItem('roiHistory', JSON.stringify(calculationHistory));
+            renderHistory();
+        });
+
+        function renderHistory() {
+            const tbody = document.getElementById('historyBody');
             tbody.innerHTML = '';
 
-            let runningTotal = 0;
+            if (calculationHistory.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="13" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            No calculations yet. Enter your investment details above to get started.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
-            trades.forEach((trade, index) => {
-                runningTotal += trade.pl;
-                const date = new Date(trade.date + 'T00:00:00');
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-
+            calculationHistory.forEach((calc, index) => {
                 const row = document.createElement('tr');
-                if (isWeekend) row.classList.add('weekend');
-
+                const date = new Date(calc.date);
+                
+                const tickerText = calc.ticker ? `<span style="color: var(--accent-blue); font-weight: 700;">${calc.ticker}</span>` : '-';
+                
+                // Handle both old ISO format and new date string format
+                let buyDateText = '-';
+                if (calc.buyDate) {
+                    if (calc.buyDate.includes('T')) {
+                        // Old ISO format
+                        buyDateText = formatDateOnly(new Date(calc.buyDate));
+                    } else {
+                        // New date string format (YYYY-MM-DD)
+                        buyDateText = formatDateOnly(new Date(calc.buyDate + 'T00:00:00'));
+                    }
+                }
+                
+                let sellDateText = 'Open';
+                if (calc.sellDate) {
+                    if (calc.sellDate.includes('T')) {
+                        // Old ISO format
+                        sellDateText = formatDateOnly(new Date(calc.sellDate));
+                    } else {
+                        // New date string format (YYYY-MM-DD)
+                        sellDateText = formatDateOnly(new Date(calc.sellDate + 'T00:00:00'));
+                    }
+                }
+                
+                const isOpen = calc.isOpenPosition || !calc.sellDate;
+                const statusBadge = isOpen 
+                    ? '<span class="status-badge open">Open</span>' 
+                    : '<span class="status-badge closed">Closed</span>';
+                const periodText = calc.years ? `${calc.years.toFixed(2)} years` : '-';
+                const annualizedText = calc.annualizedROI !== null && calc.annualizedROI !== undefined 
+                    ? `${calc.annualizedROI >= 0 ? '+' : ''}${calc.annualizedROI.toFixed(2)}%/year` 
+                    : '-';
+                
                 row.innerHTML = `
-                    <td class="date-cell">${formatDate(date)}</td>
-                    <td style="color: ${trade.pl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">
-                        ${formatCurrency(trade.pl)}
+                    <td>${formatDateTime(date)}</td>
+                    <td>${tickerText}</td>
+                    <td>${calc.investmentName}</td>
+                    <td>${buyDateText}</td>
+                    <td>${sellDateText}</td>
+                    <td>${statusBadge}</td>
+                    <td>${periodText}</td>
+                    <td>${formatCurrency(calc.initialCost)}</td>
+                    <td>${formatCurrency(calc.currentValue)}</td>
+                    <td style="color: ${calc.roi >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight: 700;">
+                        ${calc.roi >= 0 ? '+' : ''}${calc.roi.toFixed(2)}%
                     </td>
-                    <td class="running-total ${runningTotal >= 0 ? 'positive' : 'negative'}">
-                        ${formatCurrency(runningTotal)}
+                    <td style="color: ${calc.annualizedROI && calc.annualizedROI >= 0 ? 'var(--accent-blue)' : calc.annualizedROI ? 'var(--accent-red)' : 'var(--text-secondary)'}; font-weight: ${calc.annualizedROI ? '700' : '400'};">
+                        ${annualizedText}
+                    </td>
+                    <td style="color: ${calc.profitLoss >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">
+                        ${formatCurrency(calc.profitLoss)}
                     </td>
                     <td>
-                        <span class="win-badge ${trade.pl >= 0 ? 'win' : 'loss'}">
-                            ${trade.pl >= 0 ? 'Win' : 'Loss'}
-                        </span>
-                    </td>
-                    <td>${trade.tradeCount != null ? trade.tradeCount : '-'}</td>
-                    <td>${trade.strategy || '-'}</td>
-                    <td>${trade.notes || '-'}</td>
-                    <td>
-                        <button class="action-btn edit" onclick="openEditModal(${index})">Edit</button>
-                        <button class="action-btn delete" onclick="deleteTrade(${index})">Delete</button>
+                        <button class="action-btn edit" onclick="editEntry(${index})">Edit</button>
+                        <button class="action-btn delete" onclick="deleteEntry(${index})">Delete</button>
                     </td>
                 `;
-
                 tbody.appendChild(row);
             });
         }
 
-        function updateStats() {
-            if (trades.length === 0) {
-                document.getElementById('totalPL').textContent = '$0.00';
-                document.getElementById('winRate').textContent = '0%';
-                document.getElementById('avgPL').textContent = '$0.00';
-                document.getElementById('bestDay').textContent = '$0.00';
-                document.getElementById('worstDay').textContent = '$0.00';
-                document.getElementById('tradingDays').textContent = '0';
-                return;
-            }
-
-            const totalPL = trades.reduce((sum, t) => sum + t.pl, 0);
-            const wins = trades.filter(t => t.pl > 0).length;
-            const winRate = (wins / trades.length) * 100;
-            const avgPL = totalPL / trades.length;
-            const bestDay = Math.max(...trades.map(t => t.pl));
-            const worstDay = Math.min(...trades.map(t => t.pl));
-
-            document.getElementById('totalPL').textContent = formatCurrency(totalPL);
-            document.getElementById('totalPL').className = `stat-value ${totalPL >= 0 ? 'positive' : 'negative'}`;
+        function editEntry(index) {
+            const calc = calculationHistory[index];
             
-            document.getElementById('winRate').textContent = winRate.toFixed(1) + '%';
-            document.getElementById('avgPL').textContent = formatCurrency(avgPL);
-            document.getElementById('avgPL').className = `stat-value ${avgPL >= 0 ? 'positive' : 'negative'}`;
-            
-            document.getElementById('bestDay').textContent = formatCurrency(bestDay);
-            document.getElementById('worstDay').textContent = formatCurrency(worstDay);
-            document.getElementById('tradingDays').textContent = trades.length;
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('equityChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Equity Curve',
-                        data: [],
-                        borderColor: '#00ff88',
-                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#00ff88',
-                        pointBorderColor: '#0a0e1a',
-                        pointBorderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)'
-                            },
-                            ticks: {
-                                color: '#8b92a7',
-                                callback: function(value) {
-                                    return '$' + value.toFixed(0);
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.05)'
-                            },
-                            ticks: {
-                                color: '#8b92a7'
-                            }
-                        }
+            if (calc.type === 'yearly') {
+                // Fill yearly ROI form
+                document.getElementById('yearlyTicker').value = calc.ticker || '';
+                document.getElementById('yearlyInitialCost').value = calc.initialCost;
+                document.getElementById('yearlyCurrentValue').value = calc.currentValue;
+                
+                // Handle both old ISO format and new date string format
+                if (calc.buyDate) {
+                    if (calc.buyDate.includes('T')) {
+                        document.getElementById('buyDate').value = calc.buyDate.split('T')[0];
+                    } else {
+                        document.getElementById('buyDate').value = calc.buyDate;
                     }
                 }
-            });
-            updateChart();
+                
+                if (calc.sellDate) {
+                    if (calc.sellDate.includes('T')) {
+                        document.getElementById('sellDate').value = calc.sellDate.split('T')[0];
+                    } else {
+                        document.getElementById('sellDate').value = calc.sellDate;
+                    }
+                } else {
+                    document.getElementById('sellDate').value = '';
+                }
+                
+                document.getElementById('yearlyInvestmentName').value = calc.investmentName !== 'Unnamed Investment' ? calc.investmentName : '';
+                
+                // Scroll to yearly form
+                document.getElementById('yearlyRoiForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                // Fill basic ROI form
+                document.getElementById('ticker').value = calc.ticker || '';
+                document.getElementById('initialCost').value = calc.initialCost;
+                document.getElementById('currentValue').value = calc.currentValue;
+                document.getElementById('investmentName').value = calc.investmentName !== 'Unnamed Investment' ? calc.investmentName : '';
+                
+                // Scroll to basic form
+                document.getElementById('roiForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Delete the old entry after editing
+            deleteEntry(index, true);
         }
 
-        function updateChart() {
-            if (!chart) return;
+        function deleteEntry(index, skipConfirm = false) {
+            if (skipConfirm || confirm('Are you sure you want to delete this entry?')) {
+                calculationHistory.splice(index, 1);
+                localStorage.setItem('roiHistory', JSON.stringify(calculationHistory));
+                renderHistory();
+            }
+        }
 
-            const labels = [];
-            const data = [];
-            let runningTotal = 0;
-
-            trades.forEach(trade => {
-                runningTotal += trade.pl;
-                labels.push(formatDate(new Date(trade.date)));
-                data.push(runningTotal);
-            });
-
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = data;
-            chart.update();
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all calculation history?')) {
+                calculationHistory = [];
+                localStorage.removeItem('roiHistory');
+                renderHistory();
+            }
         }
 
         function formatCurrency(value) {
@@ -1504,17 +984,25 @@
             }).format(value);
         }
 
-        function formatDate(date) {
-            const options = { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' };
+        function formatDateTime(date) {
+            const options = { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
             return date.toLocaleDateString('en-US', options);
         }
 
-        // Close modal on outside click
-        document.getElementById('entryModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
+        function formatDateOnly(date) {
+            const options = { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric'
+            };
+            return date.toLocaleDateString('en-US', options);
+        }
     </script>
 </body>
 </html>
